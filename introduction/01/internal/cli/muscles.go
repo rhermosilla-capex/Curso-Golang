@@ -2,91 +2,45 @@ package muscles
 
 import (
 	"fmt"
+	musclescli "intro/internal"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
-var muscles = map[string]string{
-	"biceps":          "front of upper arm",
-	"triceps":         "back of upper arm",
-	"deltoids":        "shoulder",
-	"pectorals":       "chest",
-	"abdominals":      "stomach",
-	"quadriceps":      "front of thigh",
-	"hamstrings":      "back of thigh",
-	"gastrocnemius":   "calf",
-	"gluteus_maximus": "buttocks",
-}
-
-var exercises = map[string]string{
-	"biceps":          "bicep curl",
-	"triceps":         "tricep dip",
-	"deltoids":        "shoulder press",
-	"pectorals":       "bench press",
-	"abdominals":      "crunch",
-	"quadriceps":      "squat",
-	"hamstrings":      "deadlift",
-	"gastrocnemius":   "calf raise",
-	"gluteus_maximus": "hip thrust",
-}
-
 type CobraFn func(cmd *cobra.Command, args []string)
 
-const nameFlag = "name"
-const exercisesFlag = "exercises"
+const idFLag = "id"
 
-func InitMusclesCmd() *cobra.Command {
+func InitMusclesCmd(repository musclescli.MuscleRepo) *cobra.Command {
 	musclesCmd := &cobra.Command{
 		Use:   "muscles",
 		Short: "List muscles and their locations",
-		Run:   runMusclesFn(),
+		Run:   runMusclesFn(repository),
 	}
-	musclesCmd.Flags().StringP(nameFlag, "n", "", "Name of the muscle to get location")
-	musclesCmd.Flags().StringP(exercisesFlag, "e", "", "Name of the muscle to get exercises")
+	musclesCmd.Flags().StringP(idFLag, "i", "", "Name of the muscle to get location")
 	return musclesCmd
 }
 
-func runMusclesFn() CobraFn {
+func runMusclesFn(repository musclescli.MuscleRepo) CobraFn {
 	return func(cmd *cobra.Command, args []string) {
-		name, _ := cmd.Flags().GetString(nameFlag)
-		exercise, _ := cmd.Flags().GetString(exercisesFlag)
 
-		switch {
-		case name != "" && exercise != "":
-			printMuscleAndExercise(name)
-		case name != "" && exercise == "":
-			printMuscleLocation(name)
-		case name == "" && exercise != "":
-			printExercise(exercise)
-		default:
-			printAllMusclesAndExercises()
+		muscles, _ := repository.GetMuscles()
+
+		id, _ := cmd.Flags().GetString(idFLag)
+
+		if id != "" {
+			i, _ := strconv.Atoi(id)
+			for _, muscle := range muscles {
+				if muscle.Id == i {
+					fmt.Println(muscle)
+					return
+				}
+			}
+		} else {
+			fmt.Print(muscles)
+
 		}
-	}
-}
 
-func printMuscleAndExercise(name string) {
-	fmt.Println("Muscle:", name)
-	fmt.Println("Location:", muscles[name])
-	fmt.Println("Exercise:", exercises[name])
-}
-
-func printMuscleLocation(name string) {
-	fmt.Println("Muscle:", name)
-	fmt.Println("Location:", muscles[name])
-}
-
-func printExercise(exercise string) {
-	fmt.Println("Muscle:", exercise)
-	fmt.Println("Exercise:", exercises[exercise])
-}
-
-func printAllMusclesAndExercises() {
-	fmt.Println("Muscles and their locations:")
-	for muscle, location := range muscles {
-		fmt.Printf("%s: %s\n", muscle, location)
-	}
-	fmt.Println("\nExercises for each muscle:")
-	for muscle, exercise := range exercises {
-		fmt.Printf("%s: %s\n", muscle, exercise)
 	}
 }
