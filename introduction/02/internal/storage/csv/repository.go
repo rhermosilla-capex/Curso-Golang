@@ -38,6 +38,10 @@ func (r *repository) GetPokemons() ([]pokemoncli.Pokemon, error) {
 	return pokemons, nil
 }
 
+func (r *repository) DumpPokemonsToCSV(pokemons []pokemoncli.Pokemon, fileName string) {
+	// Not implemented
+}
+
 func readLine(reader *bufio.Reader) (line []byte) {
 	line, _, _ = reader.ReadLine()
 	return
